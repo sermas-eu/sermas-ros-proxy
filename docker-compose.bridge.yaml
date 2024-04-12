@@ -13,5 +13,15 @@ services:
       - CLIENT_ID={clientId}
       - CLIENT_SECRET={clientSecret}
       - LOGLEVEL=INFO
-
+    network_mode: host
+    ipc: host
+  bridge:
+    image: ros:galactic-ros1-bridge
+    restart: unless-stopped
+    environment:
+      - "ROS_MASTER_URI=http://{ROBOT_URL}:11311"
+      - "ROS_IP={HOST_IP}"
+    command: ros2 run ros1_bridge dynamic_bridge
+    network_mode: host
+    ipc: host
 
