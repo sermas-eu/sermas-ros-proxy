@@ -5,7 +5,7 @@ services:
     image: sermas/ros-proxy
     build:
       context: .
-    command: ros2 launch /ros_ws/src/ros_proxy/launch/launch.py
+    command: ros2 launch ros_proxy launch.py
     environment:
       - SERMAS_TOOLKIT_URL=https://dev.sermas.spindoxlabs.it
       - APP_ID={appId}

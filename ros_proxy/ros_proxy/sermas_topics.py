@@ -11,11 +11,14 @@ from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped, Twist
 from nav_msgs.msg import Odometry
 from users_landmarks_msgs.msg import MultipleUsersLandmarks
+from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(level=LOGLEVEL)
 
 ROS_USERS_LANDMARKS_TOPIC = os.getenv("ROS_USERS_LANDMARKS_TOPIC") or "/face_landmarks_node/users_landmarks"
+ROS_MUTUAL_GAZE_TOPIC = os.getenv(
+    "ROS_MUTUAL_GAZE_TOPIC") or '/mutual_gaze_output'
 ROS_USER_POSITION_TOPIC = os.getenv("ROS_USER_POSITION_TOPIC") or "/user/position"
 ROS_ODOMETRY_TOPIC = os.getenv("ROS_ODOMETRY_TOPIC") or "/odom"
 ROS_GOALPOSE_TOPIC = os.getenv("ROS_GOALPOSE_TOPIC") or '/move_base_simple/goal'
@@ -61,11 +64,23 @@ Forward Kinect body tracking data to SERMAS toolkit
 class BodyTracking(BaseTopic):
   def __init__(self, ros_node, mqtt_client):
     super().__init__(ros_node, mqtt_client, TopicDirection.ROS_TO_PLATFORM, ROS_USERS_LANDMARKS_TOPIC, SERMAS_USER_DETECTION_TOPIC)
+    self.mutual_haze = {}
     ros_node.create_subscription(MultipleUsersLandmarks, ROS_USERS_LANDMARKS_TOPIC, self.handle_ros_message, 10)
+    ros_node.create_subscription(
+        MutualGazeOutput, ROS_MUTUAL_GAZE_TOPIC, self.handle_ros_mutual_haze_message, 10)
     logging.info("[MQTT] Subscribing to ROS topic %s" % ROS_USERS_LANDMARKS_TOPIC)
 
   def handle_sermas_message(self, msg):
     pass
+
+  def handle_ros_mutual_haze_message(self, msg):
+    for index, id in enumerate(msg.body_ids):
+      self.mutual_haze[id] = msg.output[index]
+
+  def get_prob(self, body_id):
+    if body_id in self.mutual_haze:
+      return self.mutual_haze[body_id]
+    return 0
 
   def handle_ros_message(self, msg):
     detections = []
@@ -74,7 +89,8 @@ class BodyTracking(BaseTopic):
         continue
       l = u.body_landmarks[3]
       logging.debug("Found NEK marker, distance: %.2f meters" % l.position.z)
-      detections.append({"user": { "value": u.body_id, "probability": 1 }, "position": { "x": l.position.x, "y": l.position.y, "z": l.position.z}})
+      detections.append({"user": {"value": u.body_id, "probability": self.get_prob(
+          u.body_id)}, "position": {"x": l.position.x, "y": l.position.y, "z": l.position.z}})
     if len(detections) > 0:
       logging.debug("Detected people: %d" % len(detections))
       d = { "cameraId": "kinect", "source": "kinect", "detections": detections }
