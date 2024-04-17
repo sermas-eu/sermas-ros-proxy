@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  sermas-ros-proxy:
+    image: sermas/ros-proxy
+    restart: unless-stopped
+    build:
+      context: .
+    command: ros2 launch ros_proxy launch.py
+    environment:
+      - SERMAS_TOOLKIT_URL=https://dev.sermas.spindoxlabs.it
+      - APP_ID={appId}
+      - CLIENT_ID={clientId}
+      - CLIENT_SECRET={clientSecret}
+      - LOGLEVEL=INFO
+
+
