@@ -125,6 +125,7 @@ class BodyTracking(BaseTopic):
           d = {"moduleId": "intent_detection", "source": "camera",
                "probability": d["user"]["probability"], "interactionType": "start", "sessionId": ""}
           self.mqtt_client.publish(SERMAS_INTENT_DETECTION_TOPIC, d)
+          logging.info("Intent detection: %s" % str(d))
 
 
 """
