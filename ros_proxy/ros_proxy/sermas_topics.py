@@ -22,31 +22,31 @@ INTENTION_DISTANCE_THRESHOLD = os.environ.get(
     "INTENTION_DISTANCE_THRESHOLD", 1.5)
 MIN_SENDING_INTERVAL_SEC = os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5)
 
-ROS_USERS_LANDMARKS_TOPIC = os.eviron.get(
+ROS_USERS_LANDMARKS_TOPIC = os.environ.get(
     "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
-ROS_MUTUAL_GAZE_TOPIC = os.eviron.get(
+ROS_MUTUAL_GAZE_TOPIC = os.environ.get(
     "ROS_MUTUAL_GAZE_TOPIC", "/mutual_gaze_output")
-ROS_USER_POSITION_TOPIC = os.eviron.get(
+ROS_USER_POSITION_TOPIC = os.environ.get(
     "ROS_USER_POSITION_TOPIC", "/user/position")
-ROS_ODOMETRY_TOPIC = os.eviron.get("ROS_ODOMETRY_TOPIC", "/odom")
-ROS_GOALPOSE_TOPIC = os.eviron.get(
+ROS_ODOMETRY_TOPIC = os.environ.get("ROS_ODOMETRY_TOPIC", "/odom")
+ROS_GOALPOSE_TOPIC = os.environ.get(
     "ROS_GOALPOSE_TOPIC", "/move_base_simple/goal")
-ROS_INITIALPOSE_TOPIC = os.eviron.get("ROS_INITIALPOSE_TOPIC", "/initialpose")
-ROS_VELOCITY_TOPIC = os.eviron.get("ROS_VELOCITY_TOPIC", "/cmd_vel")
-ROS_VIDEO_TOPIC = os.eviron.get(
+ROS_INITIALPOSE_TOPIC = os.environ.get("ROS_INITIALPOSE_TOPIC", "/initialpose")
+ROS_VELOCITY_TOPIC = os.environ.get("ROS_VELOCITY_TOPIC", "/cmd_vel")
+ROS_VIDEO_TOPIC = os.environ.get(
     "ROS_VIDEO_TOPIC", "/v4l/camera/image_raw/compressed")
 
-SERMAS_USER_DETECTION_TOPIC = os.eviron.get(
+SERMAS_USER_DETECTION_TOPIC = os.environ.get(
     "SERMAS_USER_DETECTION_TOPIC", "detection/user")
-SERMAS_INTENT_DETECTION_TOPIC = os.eviron.get(
+SERMAS_INTENT_DETECTION_TOPIC = os.environ.get(
     "SERMAS_INTENT_DETECTION_TOPIC", "detection/intention")
-SERMAS_ROBOT_STATUS_TOPIC = os.eviron.get(
+SERMAS_ROBOT_STATUS_TOPIC = os.environ.get(
     "SERMAS_ROBOT_STATUS_TOPIC", "robotics/status")
-SERMAS_ROBOTCMD_TOPIC = os.eviron.get(
+SERMAS_ROBOTCMD_TOPIC = os.environ.get(
     "SERMAS_ROBOTCMD_TOPIC", "robotics/move")
-SERMAS_ROBOTINITIALPOSE_TOPIC = os.eviron.get(
+SERMAS_ROBOTINITIALPOSE_TOPIC = os.environ.get(
     "SERMAS_ROBOTINITIALPOSE_TOPIC", "robotics/initialpose")
-SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.eviron.get(
+SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.environ.get(
     "SERMAS_ROBOT_VIDEO_FEED_TOPIC", "robotics/videofeed")
 
 class TopicDirection(Enum):
