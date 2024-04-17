@@ -119,7 +119,7 @@ class BodyTracking(BaseTopic):
       '''
       for d in detections:
         prob = d["user"]["probability"]
-        dist = d["user"]["position"]["z"]
+        dist = d["position"]["z"]
         if prob > INTENTION_PROBABILITY_THRESHOLD and dist < INTENTION_DISTANCE_THRESHOLD and self.last_ts < (time.time() - MIN_SENDING_INTERVAL_SEC):
           self.last_ts = time.time()
           d = {"moduleId": "intent_detection", "source": "camera",
