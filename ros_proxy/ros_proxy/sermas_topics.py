@@ -3,7 +3,7 @@ import logging
 import json
 import os
 from abc import ABC, abstractmethod
-import rclpy
+import time
 from cv_bridge import CvBridge
 import cv2
 
@@ -16,23 +16,38 @@ from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(level=LOGLEVEL)
 
-ROS_USERS_LANDMARKS_TOPIC = os.getenv("ROS_USERS_LANDMARKS_TOPIC") or "/face_landmarks_node/users_landmarks"
-ROS_MUTUAL_GAZE_TOPIC = os.getenv(
-    "ROS_MUTUAL_GAZE_TOPIC") or '/mutual_gaze_output'
-ROS_USER_POSITION_TOPIC = os.getenv("ROS_USER_POSITION_TOPIC") or "/user/position"
-ROS_ODOMETRY_TOPIC = os.getenv("ROS_ODOMETRY_TOPIC") or "/odom"
-ROS_GOALPOSE_TOPIC = os.getenv("ROS_GOALPOSE_TOPIC") or '/move_base_simple/goal'
-ROS_INITIALPOSE_TOPIC = os.getenv("ROS_INITIALPOSE_TOPIC") or '/initialpose'
-ROS_VELOCITY_TOPIC = os.getenv("ROS_VELOCITY_TOPIC") or "/cmd_vel"
-ROS_VIDEO_TOPIC = os.getenv(
-    "ROS_VIDEO_TOPIC") or "/v4l/camera/image_raw/compressed"
+INTENTION_PROBABILITY_THRESHOLD = os.environ.get(
+    "INTENTION_PROBABILITY_THRESHOLD", 0.6)
+INTENTION_DISTANCE_THRESHOLD = os.environ.get(
+    "INTENTION_DISTANCE_THRESHOLD", 1.5)
+MIN_SENDING_INTERVAL_SEC = os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5)
 
-SERMAS_USER_DETECTION_TOPIC = os.getenv("SERMAS_USER_DETECTION_TOPIC") or "detection/user"
-SERMAS_ROBOT_STATUS_TOPIC = os.getenv("SERMAS_ROBOT_STATUS_TOPIC") or "robotics/status"
-SERMAS_ROBOTCMD_TOPIC = os.getenv("SERMAS_ROBOTCMD_TOPIC") or "robotics/move"
-SERMAS_ROBOTINITIALPOSE_TOPIC = os.getenv("SERMAS_ROBOTINITIALPOSE_TOPIC") or "robotics/initialpose"
-SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.getenv(
-    "SERMAS_ROBOT_VIDEO_FEED_TOPIC") or "robotics/videofeed"
+ROS_USERS_LANDMARKS_TOPIC = os.eviron.get(
+    "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
+ROS_MUTUAL_GAZE_TOPIC = os.eviron.get(
+    "ROS_MUTUAL_GAZE_TOPIC", "/mutual_gaze_output")
+ROS_USER_POSITION_TOPIC = os.eviron.get(
+    "ROS_USER_POSITION_TOPIC", "/user/position")
+ROS_ODOMETRY_TOPIC = os.eviron.get("ROS_ODOMETRY_TOPIC", "/odom")
+ROS_GOALPOSE_TOPIC = os.eviron.get(
+    "ROS_GOALPOSE_TOPIC", "/move_base_simple/goal")
+ROS_INITIALPOSE_TOPIC = os.eviron.get("ROS_INITIALPOSE_TOPIC", "/initialpose")
+ROS_VELOCITY_TOPIC = os.eviron.get("ROS_VELOCITY_TOPIC", "/cmd_vel")
+ROS_VIDEO_TOPIC = os.eviron.get(
+    "ROS_VIDEO_TOPIC", "/v4l/camera/image_raw/compressed")
+
+SERMAS_USER_DETECTION_TOPIC = os.eviron.get(
+    "SERMAS_USER_DETECTION_TOPIC", "detection/user")
+SERMAS_INTENT_DETECTION_TOPIC = os.eviron.get(
+    "SERMAS_INTENT_DETECTION_TOPIC", "detection/intention")
+SERMAS_ROBOT_STATUS_TOPIC = os.eviron.get(
+    "SERMAS_ROBOT_STATUS_TOPIC", "robotics/status")
+SERMAS_ROBOTCMD_TOPIC = os.eviron.get(
+    "SERMAS_ROBOTCMD_TOPIC", "robotics/move")
+SERMAS_ROBOTINITIALPOSE_TOPIC = os.eviron.get(
+    "SERMAS_ROBOTINITIALPOSE_TOPIC", "robotics/initialpose")
+SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.eviron.get(
+    "SERMAS_ROBOT_VIDEO_FEED_TOPIC", "robotics/videofeed")
 
 class TopicDirection(Enum):
   ROS_TO_PLATFORM = 0
@@ -59,12 +74,13 @@ class BaseTopic(ABC):
 
 
 """
-Forward Kinect body tracking data to SERMAS toolkit
+Forward user and intent detection to SERMAS toolkit
 """
 class BodyTracking(BaseTopic):
   def __init__(self, ros_node, mqtt_client):
     super().__init__(ros_node, mqtt_client, TopicDirection.ROS_TO_PLATFORM, ROS_USERS_LANDMARKS_TOPIC, SERMAS_USER_DETECTION_TOPIC)
     self.mutual_haze = {}
+    self.last_ts = 0
     ros_node.create_subscription(MultipleUsersLandmarks, ROS_USERS_LANDMARKS_TOPIC, self.handle_ros_message, 10)
     ros_node.create_subscription(
         MutualGazeOutput, ROS_MUTUAL_GAZE_TOPIC, self.handle_ros_mutual_haze_message, 10)
@@ -92,9 +108,23 @@ class BodyTracking(BaseTopic):
       detections.append({"user": {"value": u.body_id, "probability": self.get_prob(
           u.body_id)}, "position": {"x": l.position.x, "y": l.position.y, "z": l.position.z}})
     if len(detections) > 0:
+      '''
+      Publish user detection list
+      '''
       logging.debug("Detected people: %d" % len(detections))
       d = { "cameraId": "kinect", "source": "kinect", "detections": detections }
       self.mqtt_client.publish(self.sermas_topic, d)
+      '''
+      Publish intent detection list only if user is close enough
+      '''
+      for d in detections:
+        prob = d["user"]["probability"]
+        dist = d["user"]["position"]["z"]
+        if prob > INTENTION_PROBABILITY_THRESHOLD and dist < INTENTION_DISTANCE_THRESHOLD and self.last_ts < (time.time() - MIN_SENDING_INTERVAL_SEC):
+          self.last_ts = time.time()
+          d = {"moduleId": "intent_detection", "source": "camera",
+               "probability": d["user"]["probability"], "interactionType": "start", "sessionId": ""}
+          self.mqtt_client.publish(SERMAS_INTENT_DETECTION_TOPIC, d)
 
 
 """
