@@ -9,10 +9,11 @@ import json
 import ssl
 import os
 from urllib.parse import urlparse
-import sys
+import uuid
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-logging.basicConfig(level=LOGLEVEL)
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
 TOKEN_PATH = "/api/platform/token/access_token"
 REFRESH_PATH = "/api/platform/token/refresh"
@@ -105,11 +106,12 @@ class SermasApiClient:
 
 class SermasMQTTClient:
     def __init__(self, broker_address, port, app_id, client_id, api_client, callback):
+        mqtt_client_id = uuid.uuid1()
         if os.getenv("ENV") == "development":
-            self.client = mqtt.Client(
+            self.client = mqtt.Client(client_id=mqtt_client_id,
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
         else: 
-            self.client = mqtt.Client(
+            self.client = mqtt.Client(client_id=mqtt_client_id,
                 transport="websockets", callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
             ssl_context = ssl.create_default_context()
             self.client.tls_set_context(ssl_context)
