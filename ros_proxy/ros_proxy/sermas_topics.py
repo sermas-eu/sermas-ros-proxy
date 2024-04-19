@@ -13,8 +13,6 @@ from nav_msgs.msg import Odometry
 from users_landmarks_msgs.msg import MultipleUsersLandmarks
 from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-logging.basicConfig(level=LOGLEVEL)
 
 INTENTION_PROBABILITY_THRESHOLD = os.environ.get(
     "INTENTION_PROBABILITY_THRESHOLD", 0.6)

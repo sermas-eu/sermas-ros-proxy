@@ -7,7 +7,9 @@ import os
 from urllib.parse import urlparse
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-logging.basicConfig(level=LOGLEVEL)
+
+logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
+                    level=LOGLEVEL, datefmt='%Y-%m-%d %H:%M:%S')
 
 class SermasRosProxy(Node):
     def __init__(self):

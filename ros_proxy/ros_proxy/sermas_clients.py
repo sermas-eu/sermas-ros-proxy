@@ -11,10 +11,6 @@ import os
 from urllib.parse import urlparse
 import uuid
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
-logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
-                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
-
 TOKEN_PATH = "/api/platform/token/access_token"
 REFRESH_PATH = "/api/platform/token/refresh"
 
@@ -26,7 +22,7 @@ class SermasApiClient:
         self.client_secret = client_secret
         self.access_token = ""
         self.refresh_token = ""
-        self.refresh_interval = 60
+        self.refresh_interval = 120
         self.subscriptions = []
         while not self.retrieve_token():
             time.sleep(3)
@@ -106,7 +102,7 @@ class SermasApiClient:
 
 class SermasMQTTClient:
     def __init__(self, broker_address, port, app_id, client_id, api_client, callback):
-        mqtt_client_id = uuid.uuid1()
+        mqtt_client_id = uuid.uuid4().hex
         if os.getenv("ENV") == "development":
             self.client = mqtt.Client(client_id=mqtt_client_id,
                 callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
@@ -129,7 +125,7 @@ class SermasMQTTClient:
     def connect(self, url, port):
         try:
             logging.info(f"[MQTT] Connecting to broker {url}:{port}")
-            self.client.connect(url, port, keepalive=60)
+            self.client.connect(url, port, keepalive=10)
         except Exception as e:
             logging.error("[MQTT] Failed to connect to broker, error: %s" % e)
 
