@@ -5,3 +5,5 @@ stop:
 start: stop
 	docker compose up
 
+build:
+	docker compose build

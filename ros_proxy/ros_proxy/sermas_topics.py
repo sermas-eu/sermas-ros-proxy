@@ -37,7 +37,7 @@ ROS_VIDEO_TOPIC = os.environ.get(
 SERMAS_USER_DETECTION_TOPIC = os.environ.get(
     "SERMAS_USER_DETECTION_TOPIC", "detection/user")
 SERMAS_INTENT_DETECTION_TOPIC = os.environ.get(
-    "SERMAS_INTENT_DETECTION_TOPIC", "detection/intention")
+    "SERMAS_INTENT_DETECTION_TOPIC", "detection/interaction")
 SERMAS_ROBOT_STATUS_TOPIC = os.environ.get(
     "SERMAS_ROBOT_STATUS_TOPIC", "robotics/status")
 SERMAS_ROBOTCMD_TOPIC = os.environ.get(
@@ -120,7 +120,7 @@ class BodyTracking(BaseTopic):
         dist = d["position"]["z"]
         if prob > INTENTION_PROBABILITY_THRESHOLD and dist < INTENTION_DISTANCE_THRESHOLD and self.last_ts < (time.time() - MIN_SENDING_INTERVAL_SEC):
           self.last_ts = time.time()
-          d = {"moduleId": "intent_detection", "source": "camera",
+          d = {"moduleId": "detection", "source": "camera",
                "probability": d["user"]["probability"], "interactionType": "start", "sessionId": ""}
           self.mqtt_client.publish(SERMAS_INTENT_DETECTION_TOPIC, d)
           logging.info("Intent detection: %s" % str(d))
