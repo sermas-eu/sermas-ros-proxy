@@ -14,11 +14,11 @@ from users_landmarks_msgs.msg import MultipleUsersLandmarks
 from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 
 
-INTENTION_PROBABILITY_THRESHOLD = os.environ.get(
-    "INTENTION_PROBABILITY_THRESHOLD", 0.6)
-INTENTION_DISTANCE_THRESHOLD = os.environ.get(
-    "INTENTION_DISTANCE_THRESHOLD", 1.5)
-MIN_SENDING_INTERVAL_SEC = os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5)
+INTENTION_PROBABILITY_THRESHOLD = int(os.environ.get(
+    "INTENTION_PROBABILITY_THRESHOLD", 0.6))
+INTENTION_DISTANCE_THRESHOLD = int(os.environ.get(
+    "INTENTION_DISTANCE_THRESHOLD", 1.5))
+MIN_SENDING_INTERVAL_SEC = int(os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5))
 
 ROS_USERS_LANDMARKS_TOPIC = os.environ.get(
     "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
