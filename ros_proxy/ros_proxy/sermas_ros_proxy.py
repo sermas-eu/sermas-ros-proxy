@@ -1,4 +1,4 @@
-from sermas_topics import BodyTracking, TopicDirection, UserPosition, RobotStatus, RobotCmd, RobotInitialPose, RobotVelocity, VideoFeed
+from sermas_topics import RobotActuate, BodyTracking, TopicDirection, UserPosition, RobotStatus, RobotCmd, RobotInitialPose, RobotVelocity, VideoFeed
 from sermas_clients import SermasApiClient,SermasMQTTClient
 import rclpy
 from rclpy.node import Node
@@ -22,11 +22,18 @@ class SermasRosProxy(Node):
                        UserPosition(self, self.mqtt_client), 
                        RobotStatus(self, self.mqtt_client),
                        RobotCmd(self, self.mqtt_client),
-                       RobotInitialPose(self, self.mqtt_client)]
+                       RobotInitialPose(self, self.mqtt_client),
+                       RobotActuate(self, self.mqtt_client)]
         #    RobotVelocity(self, self.mqtt_client)]
         #    VideoFeed(self, self.mqtt_client)]
         subs = [t.sermas_topic for t in self.topics if t.direction == TopicDirection.PLAFTORM_TO_ROS]
         self.mqtt_client.set_topics(subs)
+    #     self.test_kinect()
+
+    # def test_kinect(self):
+    #     d = {"moduleId": "detection", "source": "camera",
+    #          "probability": 0.9, "interactionType": "start", "sessionId": ""}
+    #     self.mqtt_client.publish("detection/interaction", d)
 
     def ensure_env(self, env):
         if not env in os.environ:

@@ -12,7 +12,7 @@ from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped, Twis
 from nav_msgs.msg import Odometry
 from users_landmarks_msgs.msg import MultipleUsersLandmarks
 from mutual_gaze_detector_msgs.msg import MutualGazeOutput
-
+from std_msgs.msg import String
 
 INTENTION_PROBABILITY_THRESHOLD = float(os.environ.get(
     "INTENTION_PROBABILITY_THRESHOLD", 0.6))
@@ -33,6 +33,8 @@ ROS_INITIALPOSE_TOPIC = os.environ.get("ROS_INITIALPOSE_TOPIC", "/initialpose")
 ROS_VELOCITY_TOPIC = os.environ.get("ROS_VELOCITY_TOPIC", "/cmd_vel")
 ROS_VIDEO_TOPIC = os.environ.get(
     "ROS_VIDEO_TOPIC", "/v4l/camera/image_raw/compressed")
+ROS_ACTUATE_TOPIC = os.environ.get(
+    "ROS_ACTUATE_TOPIC", "/actuate")
 
 SERMAS_USER_DETECTION_TOPIC = os.environ.get(
     "SERMAS_USER_DETECTION_TOPIC", "detection/user")
@@ -46,6 +48,8 @@ SERMAS_ROBOTINITIALPOSE_TOPIC = os.environ.get(
     "SERMAS_ROBOTINITIALPOSE_TOPIC", "robotics/initialpose")
 SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.environ.get(
     "SERMAS_ROBOT_VIDEO_FEED_TOPIC", "robotics/videofeed")
+SERMAS_ROBOT_ACTUATE_TOPIC = os.environ.get(
+    "SERMAS_ROBOT_ACTUATE_TOPIC", "robotics/actuate")
 
 class TopicDirection(Enum):
   ROS_TO_PLATFORM = 0
@@ -281,3 +285,26 @@ class VideoFeed(BaseTopic):
     d = {"data": img_encoded.tostring()}
     # logging.debug("Robot status: %s" % str(d))
     self.mqtt_client.publish(self.sermas_topic, d)
+
+
+"""
+Forward Robot actuation command from SERMAS toolkit to ROS
+"""
+
+
+class RobotActuate(BaseTopic):
+  def __init__(self, ros_node, mqtt_client):
+    super().__init__(ros_node, mqtt_client, TopicDirection.PLAFTORM_TO_ROS,
+                     ROS_ACTUATE_TOPIC, SERMAS_ROBOT_ACTUATE_TOPIC)
+    self.publisher = ros_node.create_publisher(
+        PoseStamped, ROS_ACTUATE_TOPIC, 10)
+
+  def handle_ros_message(self, msg):
+    pass
+
+  def handle_sermas_message(self, msg):
+    logging.info("Send robot actuation cmd (topic: %s): %s" %
+                 (ROS_ACTUATE_TOPIC, str(msg.payload.decode())))
+    ros_msg = String()
+    ros_msg.data = msg.payload.decode()
+    self.publisher.publish(ros_msg)

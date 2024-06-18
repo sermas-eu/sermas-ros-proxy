@@ -9,9 +9,9 @@ services:
     command: ros2 launch ros_proxy launch.py
     environment:
       - SERMAS_TOOLKIT_URL=https://dev.sermas.spindoxlabs.it
-      - APP_ID={appId}
-      - CLIENT_ID={clientId}
-      - CLIENT_SECRET={clientSecret}
+      - APP_ID=poa
+      - CLIENT_ID=avatar
+      - CLIENT_SECRET=ee6aee0590e1cc725d452be9464d760e16dbdeb6006f17c2
       - LOGLEVEL=INFO
 
 
