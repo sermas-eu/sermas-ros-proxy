@@ -18,9 +18,9 @@ from control_msgs.msg import JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory
 
 INTENTION_PROBABILITY_THRESHOLD = float(os.environ.get(
-    "INTENTION_PROBABILITY_THRESHOLD", 0.6))
+    "INTENTION_PROBABILITY_THRESHOLD", 0.5))
 INTENTION_DISTANCE_THRESHOLD = float(os.environ.get(
-    "INTENTION_DISTANCE_THRESHOLD", 1.5))
+    "INTENTION_DISTANCE_THRESHOLD", 2.0))
 MIN_SENDING_INTERVAL_SEC = float(os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5))
 ROBOT_ARM_POSITION_TOLERANCE = float(os.environ.get(
     "ROBOT_ARM_POSITION_TOLERANCE", 0.1))
