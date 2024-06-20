@@ -90,6 +90,7 @@ RUN apt-get update \
     ros-humble-image-transport \
     ros-humble-angles \
     ros-humble-rosbridge-suite \
+    ros-humble-*controller* \
     && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /ros_ws/src

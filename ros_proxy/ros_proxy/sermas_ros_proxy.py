@@ -1,4 +1,4 @@
-from sermas_topics import RobotActuate, BodyTracking, TopicDirection, UserPosition, RobotStatus, RobotCmd, RobotInitialPose, RobotVelocity, VideoFeed
+from sermas_topics import RobotGripperState, RobotArmState, RobotActuate, BodyTracking, TopicDirection, UserPosition, RobotStatus, RobotCmd, RobotInitialPose, RobotVelocity, VideoFeed
 from sermas_clients import SermasApiClient,SermasMQTTClient
 import rclpy
 from rclpy.node import Node
@@ -23,7 +23,9 @@ class SermasRosProxy(Node):
                        RobotStatus(self, self.mqtt_client),
                        RobotCmd(self, self.mqtt_client),
                        RobotInitialPose(self, self.mqtt_client),
-                       RobotActuate(self, self.mqtt_client)]
+                       RobotActuate(self, self.mqtt_client),
+                       RobotArmState(self, self.mqtt_client),
+                       RobotGripperState(self, self.mqtt_client)]
         #    RobotVelocity(self, self.mqtt_client)]
         #    VideoFeed(self, self.mqtt_client)]
         subs = [t.sermas_topic for t in self.topics if t.direction == TopicDirection.PLAFTORM_TO_ROS]

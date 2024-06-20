@@ -6,6 +6,7 @@ from abc import ABC, abstractmethod
 import time
 from cv_bridge import CvBridge
 import cv2
+import numpy as np
 
 from sensor_msgs.msg import Image
 from geometry_msgs.msg import Pose, PoseStamped, PoseWithCovarianceStamped, Twist
@@ -13,12 +14,23 @@ from nav_msgs.msg import Odometry
 from users_landmarks_msgs.msg import MultipleUsersLandmarks
 from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 from std_msgs.msg import String
+from control_msgs.msg import JointTrajectoryControllerState
+from trajectory_msgs.msg import JointTrajectory
 
 INTENTION_PROBABILITY_THRESHOLD = float(os.environ.get(
     "INTENTION_PROBABILITY_THRESHOLD", 0.6))
 INTENTION_DISTANCE_THRESHOLD = float(os.environ.get(
     "INTENTION_DISTANCE_THRESHOLD", 1.5))
 MIN_SENDING_INTERVAL_SEC = float(os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5))
+ROBOT_ARM_POSITION_TOLERANCE = float(os.environ.get(
+    "ROBOT_ARM_POSITION_TOLERANCE", 0.1))
+ROBOT_GRIPPER_POSITION_TOLERANCE = float(os.environ.get(
+    "ROBOT_GRIPPER_POSITION_TOLERANCE", 0.05))
+ROBOT_STATE_OP_ARM = "move"
+ROBOT_STATE_OP_GRIPPER = "take"
+ROBOT_STATE_STARTED = "started"
+ROBOT_STATE_FINISHED = "finished"
+ROBOT_STATE_FAILED = "failed"
 
 ROS_USERS_LANDMARKS_TOPIC = os.environ.get(
     "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
@@ -35,6 +47,14 @@ ROS_VIDEO_TOPIC = os.environ.get(
     "ROS_VIDEO_TOPIC", "/v4l/camera/image_raw/compressed")
 ROS_ACTUATE_TOPIC = os.environ.get(
     "ROS_ACTUATE_TOPIC", "/actuate")
+ROS_ARM_STATE_TOPIC = os.environ.get(
+    "ROS_ARM_STATE_TOPIC", "/arm_controller/state")
+ROS_ARM_TRAJECTORY_TOPIC = os.environ.get(
+    "ROS_ARM_TRAJECTORY_TOPIC", "/arm_controller/joint_trajectory")
+ROS_GRIPPER_STATE_TOPIC = os.environ.get(
+    "ROS_GRIPPER_STATE_TOPIC", "/grip_controller/state")
+ROS_GRIPPER_TRAJECTORY_TOPIC = os.environ.get(
+    "ROS_GRIPPER_TRAJECTORY_TOPIC", "/grip_controller/joint_trajectory")
 
 SERMAS_USER_DETECTION_TOPIC = os.environ.get(
     "SERMAS_USER_DETECTION_TOPIC", "detection/user")
@@ -50,6 +70,8 @@ SERMAS_ROBOT_VIDEO_FEED_TOPIC = os.environ.get(
     "SERMAS_ROBOT_VIDEO_FEED_TOPIC", "robotics/videofeed")
 SERMAS_ROBOT_ACTUATE_TOPIC = os.environ.get(
     "SERMAS_ROBOT_ACTUATE_TOPIC", "robotics/actuate")
+SERMAS_ROBOT_OP_STATE_TOPIC = os.environ.get(
+    "SERMAS_ROBOT_OP_STATE_TOPIC", "robotics/opstate")
 
 class TopicDirection(Enum):
   ROS_TO_PLATFORM = 0
@@ -308,3 +330,118 @@ class RobotActuate(BaseTopic):
     ros_msg = String()
     ros_msg.data = msg.payload.decode()
     self.publisher.publish(ros_msg)
+
+
+"""
+Forward Robot arm state to SERMAS toolkit
+"""
+
+
+class RobotArmState(BaseTopic):
+  def __init__(self, ros_node, mqtt_client):
+    super().__init__(ros_node, mqtt_client, TopicDirection.ROS_TO_PLATFORM,
+                     ROS_ARM_STATE_TOPIC, SERMAS_ROBOT_OP_STATE_TOPIC)
+    ros_node.create_subscription(
+        JointTrajectoryControllerState, ROS_ARM_STATE_TOPIC, self.handle_ros_message, 10)
+    ros_node.create_subscription(
+        JointTrajectory, ROS_ARM_TRAJECTORY_TOPIC, self.handle_arm_trajectory, 10)
+
+    logging.info("[MQTT] Subscribing to ROS topic %s" % ROS_ARM_STATE_TOPIC)
+    logging.info("[MQTT] Subscribing to ROS topic %s" %
+                 ROS_ARM_TRAJECTORY_TOPIC)
+    self.cur_state = None
+    self.desired_position = None
+    self.actual_position = None
+
+  def handle_sermas_message(self, msg):
+    pass
+
+  def publish(self, state):
+    if self.cur_state == state:
+      return
+    self.cur_state = state
+    d = {"state": {"op": ROBOT_STATE_OP_ARM, "state": self.cur_state}}
+    logging.info("Robot arm state: %s" % str(d))
+    self.mqtt_client.publish(self.sermas_topic, d)
+
+  def handle_arm_trajectory(self, msg):
+    if len(msg.points) == 0:
+      return
+    pos = msg.points[len(msg.points) - 1].positions
+    logging.debug("Requested arm position: %s" % (str(pos)))
+    self.desired_position = pos
+
+  def match_target_position(self, current, target):
+    for idx, c in enumerate(current):
+      if np.abs(c - target[idx]) > ROBOT_ARM_POSITION_TOLERANCE:
+        return False
+    return True
+
+  def handle_ros_message(self, msg):
+    if self.desired_position is None:
+      return
+    self.actual_position = msg.actual.positions
+    match = self.match_target_position(
+        self.desired_position, self.actual_position)
+    if match:
+      self.publish(ROBOT_STATE_FINISHED)
+    else:
+      self.publish(ROBOT_STATE_STARTED)
+
+
+"""
+Forward Robot gripper state to SERMAS toolkit
+"""
+
+
+class RobotGripperState(BaseTopic):
+  def __init__(self, ros_node, mqtt_client):
+    super().__init__(ros_node, mqtt_client, TopicDirection.ROS_TO_PLATFORM,
+                     ROS_GRIPPER_STATE_TOPIC, SERMAS_ROBOT_OP_STATE_TOPIC)
+    ros_node.create_subscription(
+        JointTrajectoryControllerState, ROS_GRIPPER_STATE_TOPIC, self.handle_ros_message, 10)
+    ros_node.create_subscription(
+        JointTrajectory, ROS_GRIPPER_TRAJECTORY_TOPIC, self.handle_arm_trajectory, 10)
+
+    logging.info("[MQTT] Subscribing to ROS topic %s" %
+                 ROS_GRIPPER_STATE_TOPIC)
+    logging.info("[MQTT] Subscribing to ROS topic %s" %
+                 ROS_GRIPPER_TRAJECTORY_TOPIC)
+    self.cur_state = None
+    self.desired_position = None
+    self.actual_position = None
+
+  def handle_sermas_message(self, msg):
+    pass
+
+  def publish(self, state):
+    if self.cur_state == state:
+      return
+    self.cur_state = state
+    d = {"state": {"op": ROBOT_STATE_OP_GRIPPER, "state": self.cur_state}}
+    logging.info("Robot gripper state: %s" % str(d))
+    self.mqtt_client.publish(self.sermas_topic, d)
+
+  def handle_arm_trajectory(self, msg):
+    if len(msg.points) == 0:
+      return
+    pos = msg.points[len(msg.points) - 1].positions
+    logging.debug("Requested gripper position: %s" % (str(pos)))
+    self.desired_position = pos
+
+  def match_target_position(self, current, target):
+    for idx, c in enumerate(current):
+      if np.abs(c - target[idx]) > ROBOT_GRIPPER_POSITION_TOLERANCE:
+        return False
+    return True
+
+  def handle_ros_message(self, msg):
+    if self.desired_position is None:
+      return
+    self.actual_position = msg.actual.positions
+    match = self.match_target_position(
+        self.desired_position, self.actual_position)
+    if match:
+      self.publish(ROBOT_STATE_FINISHED)
+    else:
+      self.publish(ROBOT_STATE_STARTED)
