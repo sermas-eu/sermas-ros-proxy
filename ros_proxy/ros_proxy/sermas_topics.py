@@ -114,6 +114,10 @@ class BodyTracking(BaseTopic):
     pass
 
   def handle_ros_mutual_haze_message(self, msg):
+    if len(msg.body_ids) != len(msg.output):
+      logging.error('Mutual gaze output and body_ids len mismatch [%d != %d]' % (
+          len(msg.body_ids), len(msg.output)))
+      return
     for index, id in enumerate(msg.body_ids):
       self.mutual_haze[id] = msg.output[index]
 
