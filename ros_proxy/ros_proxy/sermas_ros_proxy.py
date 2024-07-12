@@ -1,4 +1,5 @@
-from sermas_topics import RobotGripperState, RobotArmState, RobotActuate, BodyTracking, TopicDirection, UserPosition, RobotStatus, RobotCmd, RobotInitialPose, RobotVelocity, VideoFeed
+from ros_proxy.ros_proxy.integrations.kinect.main import Kinect
+from ros_proxy.ros_proxy.integrations.tiago.main import Tiago
 from sermas_clients import SermasApiClient,SermasMQTTClient
 import rclpy
 from rclpy.node import Node
@@ -18,17 +19,18 @@ class SermasRosProxy(Node):
         api_client = SermasApiClient(self.api_url, self.app_id, self.client_id, self.client_secret)
         self.mqtt_client = SermasMQTTClient(self.broker_url, self.broker_port, self.app_id, 
                                             self.client_id, api_client, self.handle_sermas_message)
-        self.topics = [BodyTracking(self, self.mqtt_client), 
-                       UserPosition(self, self.mqtt_client), 
-                       RobotStatus(self, self.mqtt_client),
-                       RobotCmd(self, self.mqtt_client),
-                       RobotInitialPose(self, self.mqtt_client),
-                       RobotActuate(self, self.mqtt_client),
-                       RobotArmState(self, self.mqtt_client),
-                       RobotGripperState(self, self.mqtt_client)]
+        self.integrations = []
+        # self.topics = [BodyTracking(self, self.mqtt_client),
+        #                UserPosition(self, self.mqtt_client),
+        #                RobotStatus(self, self.mqtt_client),
+        #                RobotCmd(self, self.mqtt_client),
+        #                RobotInitialPose(self, self.mqtt_client),
+        #                RobotActuate(self, self.mqtt_client),
+        #                RobotArmState(self, self.mqtt_client),
+        #                RobotGripperState(self, self.mqtt_client)]
         #    RobotVelocity(self, self.mqtt_client)]
         #    VideoFeed(self, self.mqtt_client)]
-        subs = [t.sermas_topic for t in self.topics if t.direction == TopicDirection.PLAFTORM_TO_ROS]
+        subs = [t.sermas_topic for t in self.integrations if t.sermas_topic != ""]
         self.mqtt_client.set_topics(subs)
     #     self.test_kinect()
 
@@ -36,6 +38,10 @@ class SermasRosProxy(Node):
     #     d = {"moduleId": "detection", "source": "camera",
     #          "probability": 0.9, "interactionType": "start", "sessionId": ""}
     #     self.mqtt_client.publish("detection/interaction", d)
+
+    def load_integrations(self):
+        self.integrations.append(Kinect(self, self.mqtt_client))
+        self.integrations.append(Tiago(self, self.mqtt_client))
 
     def ensure_env(self, env):
         if not env in os.environ:
@@ -61,7 +67,7 @@ class SermasRosProxy(Node):
             self.broker_port = 1883
 
     def handle_sermas_message(self, client, userdata, msg):
-        for t in self.topics:
+        for t in self.integrations:
             t.handle_mqtt_message(client, userdata, msg)
 
 

@@ -1,26 +1,36 @@
 import logging
+import os
+import time
 
+from ros_proxy.ros_proxy.config.topics import ROS_MUTUAL_GAZE_TOPIC, ROS_USERS_LANDMARKS_TOPIC, SERMAS_INTENT_DETECTION_TOPIC, SERMAS_USER_DETECTION_TOPIC
+from ros_proxy.ros_proxy.integrations.base_class import IntegrationBaseClass
+from users_landmarks_msgs.msg import MultipleUsersLandmarks
+from mutual_gaze_detector_msgs.msg import MutualGazeOutput
+
+
+INTENTION_PROBABILITY_THRESHOLD = float(os.environ.get(
+    "INTENTION_PROBABILITY_THRESHOLD", 0.5))
+INTENTION_DISTANCE_THRESHOLD = float(os.environ.get(
+    "INTENTION_DISTANCE_THRESHOLD", 2.0))
+MIN_SENDING_INTERVAL_SEC = float(
+    os.environ.get("MIN_SENDING_INTERVAL_SEC", 0.5))
 
 """
 Forward user and intent detection to SERMAS toolkit
 """
 
 
-class BodyTracking():
+class Kinect(IntegrationBaseClass):
   def __init__(self, ros_node):
-    # super().__init__(ros_node, mqtt_client, TopicDirection.ROS_TO_PLATFORM, ROS_USERS_LANDMARKS_TOPIC, SERMAS_USER_DETECTION_TOPIC)
-    self.ros_node = ros_node
+    super().__init__(ros_node, SERMAS_USER_DETECTION_TOPIC)
     self.mutual_haze = {}
     self.last_ts = 0
     self.ros_node.create_subscription(
-        MultipleUsersLandmarks, ROS_USERS_LANDMARKS_TOPIC, self.handle_ros_message, 10)
+        MultipleUsersLandmarks, ROS_USERS_LANDMARKS_TOPIC, self.handle_ros_landmark_message, 10)
     self.ros_node.create_subscription(
         MutualGazeOutput, ROS_MUTUAL_GAZE_TOPIC, self.handle_ros_mutual_haze_message, 10)
     logging.info("[MQTT] Subscribing to ROS topic %s" %
                  ROS_USERS_LANDMARKS_TOPIC)
-
-  def handle_sermas_message(self, msg):
-    pass
 
   def handle_ros_mutual_haze_message(self, msg):
     if len(msg.body_ids) != len(msg.output):
@@ -35,9 +45,10 @@ class BodyTracking():
       return self.mutual_haze[body_id]
     return 0
 
-  def handle_ros_message(self, msg):
+  def handle_ros_landmark_message(self, msg):
     detections = []
     for u in msg.users:
+      logging.info("detection landmarks: %d" % len(u.body_landmarks))
       if len(u.body_landmarks) < 4:
         continue
       l = u.body_landmarks[3]
