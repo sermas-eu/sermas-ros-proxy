@@ -1,3 +1,5 @@
+import os
+
 ROS_USERS_LANDMARKS_TOPIC = os.environ.get(
     "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
 ROS_MUTUAL_GAZE_TOPIC = os.environ.get(

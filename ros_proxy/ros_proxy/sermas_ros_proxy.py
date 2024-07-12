@@ -1,14 +1,16 @@
-from ros_proxy.ros_proxy.integrations.kinect.main import Kinect
-from ros_proxy.ros_proxy.integrations.tiago.main import Tiago
-from sermas_clients import SermasApiClient,SermasMQTTClient
 import rclpy
 from rclpy.node import Node
 import logging
 import os
 from urllib.parse import urlparse
 
-LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
+from ros_proxy.integrations.kinect.main import Kinect
+from ros_proxy.integrations.myagv.main import MyAgvRobotCmd, MyAgvRobotStatus
+from ros_proxy.integrations.mycobot.main import MyCobotRobotActuate, MyCobotRobotArmState, MyCobotRobotGripperState
+from ros_proxy.integrations.tiago.main import Tiago
+from sermas_clients import SermasApiClient, SermasMQTTClient
 
+LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
 logging.basicConfig(format='%(asctime)s %(levelname)-8s %(message)s',
                     level=LOGLEVEL, datefmt='%Y-%m-%d %H:%M:%S')
 
@@ -19,17 +21,7 @@ class SermasRosProxy(Node):
         api_client = SermasApiClient(self.api_url, self.app_id, self.client_id, self.client_secret)
         self.mqtt_client = SermasMQTTClient(self.broker_url, self.broker_port, self.app_id, 
                                             self.client_id, api_client, self.handle_sermas_message)
-        self.integrations = []
-        # self.topics = [BodyTracking(self, self.mqtt_client),
-        #                UserPosition(self, self.mqtt_client),
-        #                RobotStatus(self, self.mqtt_client),
-        #                RobotCmd(self, self.mqtt_client),
-        #                RobotInitialPose(self, self.mqtt_client),
-        #                RobotActuate(self, self.mqtt_client),
-        #                RobotArmState(self, self.mqtt_client),
-        #                RobotGripperState(self, self.mqtt_client)]
-        #    RobotVelocity(self, self.mqtt_client)]
-        #    VideoFeed(self, self.mqtt_client)]
+        self.load_integrations()
         subs = [t.sermas_topic for t in self.integrations if t.sermas_topic != ""]
         self.mqtt_client.set_topics(subs)
     #     self.test_kinect()
@@ -40,8 +32,14 @@ class SermasRosProxy(Node):
     #     self.mqtt_client.publish("detection/interaction", d)
 
     def load_integrations(self):
-        self.integrations.append(Kinect(self, self.mqtt_client))
-        self.integrations.append(Tiago(self, self.mqtt_client))
+        self.integrations = []
+        self.integrations.append(Kinect(self))
+        self.integrations.append(Tiago(self))
+        self.integrations.append(MyAgvRobotStatus(self))
+        self.integrations.append(MyAgvRobotCmd(self))
+        self.integrations.append(MyCobotRobotActuate(self))
+        self.integrations.append(MyCobotRobotArmState(self))
+        self.integrations.append(MyCobotRobotGripperState(self))
 
     def ensure_env(self, env):
         if not env in os.environ:

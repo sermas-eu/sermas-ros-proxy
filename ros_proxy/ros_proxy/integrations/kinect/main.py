@@ -2,8 +2,8 @@ import logging
 import os
 import time
 
-from ros_proxy.ros_proxy.config.topics import ROS_MUTUAL_GAZE_TOPIC, ROS_USERS_LANDMARKS_TOPIC, SERMAS_INTENT_DETECTION_TOPIC, SERMAS_USER_DETECTION_TOPIC
-from ros_proxy.ros_proxy.integrations.base_class import IntegrationBaseClass
+from ros_proxy.config.topics import ROS_MUTUAL_GAZE_TOPIC, ROS_USERS_LANDMARKS_TOPIC, SERMAS_INTENT_DETECTION_TOPIC, SERMAS_USER_DETECTION_TOPIC
+from ros_proxy.integrations.base_class import IntegrationBaseClass
 from users_landmarks_msgs.msg import MultipleUsersLandmarks
 from mutual_gaze_detector_msgs.msg import MutualGazeOutput
 
@@ -31,6 +31,9 @@ class Kinect(IntegrationBaseClass):
         MutualGazeOutput, ROS_MUTUAL_GAZE_TOPIC, self.handle_ros_mutual_haze_message, 10)
     logging.info("[MQTT] Subscribing to ROS topic %s" %
                  ROS_USERS_LANDMARKS_TOPIC)
+
+  def handle_sermas_message(self, msg):
+    pass
 
   def handle_ros_mutual_haze_message(self, msg):
     if len(msg.body_ids) != len(msg.output):

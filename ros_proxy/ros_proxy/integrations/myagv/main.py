@@ -2,8 +2,8 @@ import logging
 import json
 from nav_msgs.msg import Odometry
 from geometry_msgs.msg import PoseStamped, PoseWithCovarianceStamped, Twist
-from ros_proxy.ros_proxy.config.topics import ROS_GOALPOSE_TOPIC, ROS_INITIALPOSE_TOPIC, ROS_ODOMETRY_TOPIC, ROS_VELOCITY_TOPIC, SERMAS_ROBOT_STATUS_TOPIC, SERMAS_ROBOTCMD_TOPIC, SERMAS_ROBOTINITIALPOSE_TOPIC
-from ros_proxy.ros_proxy.sermas_topics import IntegrationBaseClass
+from ros_proxy.config.topics import ROS_GOALPOSE_TOPIC, ROS_INITIALPOSE_TOPIC, ROS_ODOMETRY_TOPIC, ROS_VELOCITY_TOPIC, SERMAS_ROBOT_STATUS_TOPIC, SERMAS_ROBOTCMD_TOPIC, SERMAS_ROBOTINITIALPOSE_TOPIC
+from ros_proxy.integrations.base_class import IntegrationBaseClass
 
 
 """

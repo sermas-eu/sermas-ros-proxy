@@ -1,13 +1,13 @@
 import logging
-import json
 import os
+import numpy as np
 from geometry_msgs.msg import PoseStamped
 from control_msgs.msg import JointTrajectoryControllerState
 from trajectory_msgs.msg import JointTrajectory
 from std_msgs.msg import String
 
-from ros_proxy.ros_proxy.config.topics import ROS_ACTUATE_TOPIC, ROS_ARM_STATE_TOPIC, ROS_ARM_TRAJECTORY_TOPIC, ROS_GRIPPER_STATE_TOPIC, ROS_GRIPPER_TRAJECTORY_TOPIC, SERMAS_ROBOT_ACTUATE_TOPIC, SERMAS_ROBOT_OP_STATE_TOPIC
-from ros_proxy.ros_proxy.sermas_topics import ROBOT_ARM_POSITION_TOLERANCE, ROBOT_STATE_OP_ARM, IntegrationBaseClass
+from ros_proxy.integrations.base_class import IntegrationBaseClass
+from ros_proxy.config.topics import ROS_ACTUATE_TOPIC, ROS_ARM_STATE_TOPIC, ROS_ARM_TRAJECTORY_TOPIC, ROS_GRIPPER_STATE_TOPIC, ROS_GRIPPER_TRAJECTORY_TOPIC, SERMAS_ROBOT_ACTUATE_TOPIC, SERMAS_ROBOT_OP_STATE_TOPIC
 
 ROBOT_ARM_POSITION_TOLERANCE = float(os.environ.get(
     "ROBOT_ARM_POSITION_TOLERANCE", 0.1))
@@ -29,9 +29,6 @@ class MyCobotRobotActuate(IntegrationBaseClass):
     super().__init__(ros_node, SERMAS_ROBOT_ACTUATE_TOPIC)
     self.publisher = ros_node.create_publisher(
         PoseStamped, ROS_ACTUATE_TOPIC, 10)
-
-  def handle_ros_message(self, msg):
-    pass
 
   def handle_sermas_message(self, msg):
     logging.info("Send robot actuation cmd (topic: %s): %s" %

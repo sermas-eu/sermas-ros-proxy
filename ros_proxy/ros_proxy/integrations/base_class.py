@@ -12,9 +12,5 @@ class IntegrationBaseClass(ABC):
       self.handle_sermas_message(msg)
 
   @abstractmethod
-  def handle_ros_message(self, msg):
-    raise NotImplementedError()
-
-  @abstractmethod
   def handle_sermas_message(self, msg):
     raise NotImplementedError()

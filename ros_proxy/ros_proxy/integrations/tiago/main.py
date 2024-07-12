@@ -1,9 +1,8 @@
 import logging
 import json
-import os
 from geometry_msgs.msg import Pose
-from ros_proxy.ros_proxy.config.topics import ROS_USER_POSITION_TOPIC, SERMAS_USER_DETECTION_TOPIC
-from ros_proxy.ros_proxy.sermas_topics import IntegrationBaseClass
+from ros_proxy.config.topics import ROS_USER_POSITION_TOPIC, SERMAS_USER_DETECTION_TOPIC
+from ros_proxy.integrations.base_class import IntegrationBaseClass
 
 
 """
