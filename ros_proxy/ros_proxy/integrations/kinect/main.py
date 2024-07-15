@@ -51,8 +51,9 @@ class Kinect(IntegrationBaseClass):
   def handle_ros_landmark_message(self, msg):
     detections = []
     for u in msg.users:
-      logging.info("detection landmarks: %d" % len(u.body_landmarks))
-      if len(u.body_landmarks) < 4:
+      if len(u.body_landmarks) < 32:
+        logging.warn("Less than 32 (%d) detection landmarks" %
+                     len(u.body_landmarks))
         continue
       l = u.body_landmarks[3]
       logging.debug("Found NEK marker, distance: %.2f meters" % l.position.z)
