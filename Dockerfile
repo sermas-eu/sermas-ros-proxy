@@ -91,35 +91,32 @@ RUN apt-get update \
     ros-humble-angles \
     ros-humble-rosbridge-suite \
     ros-humble-*controller* \
+    ros-humble-tf-transformations \
     && rm -rf /var/lib/apt/lists/*
+    
+RUN python3 -m pip  install torch torchvision -f https://download.pytorch.org/whl/cu111/torch_stable.html
 
 RUN mkdir -p /ros_ws/src
-RUN git -C /ros_ws/src/ clone https://github.com/idsia-robotics/mutual_gaze_detector.git
+
+COPY intention-detection /ros_ws/src/intention-detection
 
 RUN python3 -m pip install pip -U
 RUN python3 -m pip install -U setuptools==62.1.0
-RUN python3 -m pip install -r /ros_ws/src/mutual_gaze_detector/config/requirements.txt
-RUN python3 -m pip install /ros_ws/src/mutual_gaze_detector/non_ros/users_landmarks_utils
+RUN python3 -m pip install -r /ros_ws/src/intention-detection/config/requirements.txt
+RUN python3 -m pip install /ros_ws/src/intention-detection/non_ros/users_landmarks_utils
+RUN python3 -m pip install /ros_ws/src/intention-detection/non_ros/nn_custom_models
+# RUN python3 -m pip install /ros_ws/src/intention-detection/non_ros/nn_custom_models
 
-COPY ros_entrypoint.sh /
+RUN git clone https://github.com/idsia-robotics/Azure_Kinect_ROS_Driver.git /ros_ws/src/Azure_Kinect_ROS_Driver
 
-RUN source /ros_entrypoint.sh \
-    && cd /ros_ws \
-    && colcon build \
-    && rm -r build log
-
-RUN source /ros_entrypoint.sh \
-    && cd /ros_ws \
-    && colcon build --symlink-install --packages-select users_landmarks_tracking mutual_gaze_detector \
-    && rm -r build log
-
-RUN rm -rf /kinect_tmp
-
-COPY ./ros_proxy /ros_ws/src/ros_proxy
-RUN source /ros_entrypoint.sh \
-    && cd /ros_ws \
-    && colcon build --packages-select ros_proxy --symlink-install
 COPY requirements.txt .
 RUN pip install -r requirements.txt
+COPY ./ros_proxy /ros_ws/src/ros_proxy
 
+WORKDIR /ros_ws
+
+RUN source /opt/ros/humble/setup.bash \
+    && colcon build --symlink-install
+
+COPY ros_entrypoint.sh /
 ENTRYPOINT ["/ros_entrypoint.sh"]

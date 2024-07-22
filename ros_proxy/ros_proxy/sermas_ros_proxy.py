@@ -4,7 +4,7 @@ import logging
 import os
 from urllib.parse import urlparse
 
-from ros_proxy.integrations.kinect.main import Kinect
+from ros_proxy.integrations.kinect.main import IntentDetection
 from ros_proxy.integrations.myagv.main import MyAgvRobotCmd, MyAgvRobotStatus
 from ros_proxy.integrations.mycobot.main import MyCobotRobotActuate, MyCobotRobotArmState, MyCobotRobotGripperState
 from ros_proxy.integrations.tiago.main import Tiago
@@ -33,7 +33,7 @@ class SermasRosProxy(Node):
 
     def load_integrations(self):
         self.integrations = []
-        self.integrations.append(Kinect(self))
+        self.integrations.append(IntentDetection(self))
         self.integrations.append(Tiago(self))
         self.integrations.append(MyAgvRobotStatus(self))
         self.integrations.append(MyAgvRobotCmd(self))

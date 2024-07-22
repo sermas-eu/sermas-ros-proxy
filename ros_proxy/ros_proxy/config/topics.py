@@ -4,6 +4,8 @@ ROS_USERS_LANDMARKS_TOPIC = os.environ.get(
     "ROS_USERS_LANDMARKS_TOPIC", "/face_landmarks_node/users_landmarks")
 ROS_MUTUAL_GAZE_TOPIC = os.environ.get(
     "ROS_MUTUAL_GAZE_TOPIC", "/mutual_gaze_output")
+ROS_SESSION_TOPIC = os.environ.get(
+    "ROS_SESSION_TOPIC", "/interaction_manager_node/session_event")
 ROS_USER_POSITION_TOPIC = os.environ.get(
     "ROS_USER_POSITION_TOPIC", "/user/position")
 ROS_ODOMETRY_TOPIC = os.environ.get("ROS_ODOMETRY_TOPIC", "/odom")
