@@ -15,43 +15,28 @@ services:
       - LOGLEVEL=INFO
     network_mode: host
     pid: host
-
-  # landmarks-pipeline:
-  #     image: gabry993/mutual-gaze:full
-  #     network_mode: host
-  #     pid: host
-  #     privileged: true
-  #     command: ros2 launch users_landmarks_tracking users_landmarks_tracking.launch.xml rectified_image_input:=false debug_node:=true
-  #     volumes:
-  #       - ./logs:/root/.ros/log:rw
-  #       - ./profile.xml:/profile.xml
-  #     environment:
-  #       - "FASTRTPS_DEFAULT_PROFILES_FILE=/profile.xml"
-  
-  # interaction-detector:
-  #     image: sermas/ros-proxy
-  #     network_mode: host
-  #     pid: host
-  #     privileged: true
-  #     command: ros2 launch interaction_intention_detector_ros interaction_intention_detector.launch.xml debug_node:=true
+    ipc: host
 
   interaction-manager:
-    image: sermas/ros-proxy
+    image: sermas/intention-detection
     network_mode: host
     pid: host
+    ipc: host
     privileged: true
-    command: ros2 launch interaction_manager interaction_manager.launch.xml debug_node:=true
+    command: ros2 launch interaction_manager interaction_manager.launch.xml interaction_trigger_prediction_threshold:=0.5 interaction_end_distance_threshold:=2.0 debug_node:=true
 
   bag-player:
-    image: gabry993/mutual-gaze:test
+    image: sermas/intention-detection
     network_mode: host
     pid: host
+    ipc: host
     privileged: true
-    command: ros2 bag play -l test_bag
+    command: ros2 bag play -l /data/rosbag2_2024_07_19-15_32_02/rosbag2_2024_07_19-15_32_02_0.db3
     volumes:
       - ./logs:/root/.ros/log:rw
       - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
       - ./profile.xml:/profile.xml
+      - /home/marco/Documents/sermas/bag:/data
     environment:
       - DISPLAY
       - QT_X11_NO_MITSHM=1

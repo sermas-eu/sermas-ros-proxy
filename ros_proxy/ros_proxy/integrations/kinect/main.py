@@ -1,6 +1,6 @@
 import logging
 import os
-import time
+import rclpy
 
 from ros_proxy.config.topics import ROS_SESSION_TOPIC, ROS_MUTUAL_GAZE_TOPIC, ROS_USERS_LANDMARKS_TOPIC, SERMAS_INTENT_DETECTION_TOPIC, SERMAS_USER_DETECTION_TOPIC
 from ros_proxy.integrations.base_class import IntegrationBaseClass
@@ -25,8 +25,11 @@ Forward user and intent detection to SERMAS toolkit
 class IntentDetection(IntegrationBaseClass):
   def __init__(self, ros_node):
     super().__init__(ros_node, SERMAS_INTENT_DETECTION_TOPIC)
+    self.qos_pub = rclpy.qos.QoSProfile(
+        depth=1,
+    )
     self.ros_node.create_subscription(
-        SessionEvent, ROS_SESSION_TOPIC, self.handle_ros_session_message, 10)
+        SessionEvent, ROS_SESSION_TOPIC, self.handle_ros_session_message, self.qos_pub)
     logging.info("[MQTT] Subscribing to ROS topic %s" %
                  ROS_SESSION_TOPIC)
 
@@ -34,14 +37,11 @@ class IntentDetection(IntegrationBaseClass):
     pass
 
   def handle_ros_session_message(self, msg):
-    logging.info(
-        "******************* \n Session %s \n *************************" % str(msg))
-
-    # self.last_ts = time.time()
-    # d = {"moduleId": "detection", "source": "camera",
-    #      "probability": d["user"]["probability"], "interactionType": "start", "sessionId": ""}
-    # self.ros_node.mqtt_client.publish(self.sermas_topic, d)
-    # logging.info("Intent detection: %s" % str(d))
+    logging.info("Session event %s for userId %d" %
+                 (msg.event_type, msg.user_id))
+    d = {"moduleId": "detection", "source": "camera", "userId": str(msg.user_id),
+         "probability": d["user"]["probability"], "interactionType": msg.event_type, "sessionId": ""}
+    self.ros_node.mqtt_client.publish(self.sermas_topic, d)
 
 
 # class Kinect(IntegrationBaseClass):
