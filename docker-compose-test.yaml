@@ -13,6 +13,8 @@ services:
       - CLIENT_ID=avatar
       - CLIENT_SECRET=6736d73f7f25ab272b6454cefd471d78d74f338b6e634118
       - LOGLEVEL=INFO
+    network_mode: host
+    pid: host
 
   # landmarks-pipeline:
   #     image: gabry993/mutual-gaze:full
@@ -34,11 +36,11 @@ services:
   #     command: ros2 launch interaction_intention_detector_ros interaction_intention_detector.launch.xml debug_node:=true
 
   interaction-manager:
-      image: sermas/ros-proxy
-      network_mode: host
-      pid: host
-      privileged: true
-      command: ros2 launch interaction_manager interaction_manager.launch.xml debug_node:=true
+    image: sermas/ros-proxy
+    network_mode: host
+    pid: host
+    privileged: true
+    command: ros2 launch interaction_manager interaction_manager.launch.xml debug_node:=true
 
   bag-player:
     image: gabry993/mutual-gaze:test
