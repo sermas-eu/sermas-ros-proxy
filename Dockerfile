@@ -98,14 +98,9 @@ RUN python3 -m pip  install torch torchvision -f https://download.pytorch.org/wh
 
 RUN mkdir -p /ros_ws/src
 
-RUN git clone git@github.com:sermas-eu/intention-detection.git /ros_ws/src/intention-detection
-# COPY intention-detection /ros_ws/src/intention-detection
-
-RUN python3 -m pip install pip -U
-RUN python3 -m pip install -U setuptools==62.1.0
-RUN python3 -m pip install -r /ros_ws/src/intention-detection/config/requirements.txt
-RUN python3 -m pip install /ros_ws/src/intention-detection/non_ros/users_landmarks_utils
-RUN python3 -m pip install /ros_ws/src/intention-detection/non_ros/nn_custom_models
+RUN git clone git@github.com:sermas-eu/intention-detection.git /tmp/intention-detection
+RUN cp -r /tmp/intention-detection/ros/session_event_msgs /ros_ws/src/
+RUN rm -rf /tmp/intention-detection
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt

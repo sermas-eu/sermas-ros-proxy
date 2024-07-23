@@ -40,7 +40,7 @@ class IntentDetection(IntegrationBaseClass):
     logging.info("Session event %s for userId %d" %
                  (msg.event_type, msg.user_id))
     d = {"moduleId": "detection", "source": "camera", "userId": str(msg.user_id),
-         "probability": d["user"]["probability"], "interactionType": msg.event_type, "sessionId": ""}
+         "probability": 1, "interactionType": msg.event_type, "sessionId": ""}
     self.ros_node.mqtt_client.publish(self.sermas_topic, d)
 
 
