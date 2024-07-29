@@ -1,0 +1,18 @@
+version: "3"
+
+services:
+  sermas-ros-proxy:
+    image: sermas/ros-proxy
+    restart: unless-stopped
+    build:
+      context: .
+    command: ros2 launch ros_proxy launch.py
+    environment:
+      - SERMAS_TOOLKIT_URL=https://dev.sermas.spindoxlabs.it
+      - APP_ID=spxl
+      - CLIENT_ID=avatar
+      - CLIENT_SECRET={secret}
+      - LOGLEVEL=INFO
+    network_mode: host
+    pid: host
+    ipc: host

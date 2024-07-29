@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  bag-player:
+    image: ghcr.io/sermas-eu/intention-detection:latest
+    network_mode: host
+    pid: host
+    ipc: host
+    privileged: true
+    command: ros2 bag play -l /data/rosbag2_2024_07_19-15_32_02/rosbag2_2024_07_19-15_32_02_0.db3
+    volumes:
+      - ./logs:/root/.ros/log:rw
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - ./profile.xml:/profile.xml
+      - ./bags:/data
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+      - "FASTRTPS_DEFAULT_PROFILES_FILE=/profile.xml"

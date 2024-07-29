@@ -1,0 +1,27 @@
+version: "3"
+
+services:
+  sermas-ros-proxy:
+    image: sermas/ros-proxy
+    restart: unless-stopped
+    build:
+      context: .
+    command: ros2 launch ros_proxy launch.py
+    environment:
+      - SERMAS_TOOLKIT_URL=http://localhost:8080
+      - APP_ID=spxl
+      - CLIENT_ID=avatar
+      - CLIENT_SECRET={secret}
+      - LOGLEVEL=DEBUG
+      - ENV=development
+    network_mode: host
+    pid: host
+    ipc: host
+
+  interaction-manager:
+    image: ghcr.io/sermas-eu/intention-detection:latest
+    network_mode: host
+    pid: host
+    ipc: host
+    privileged: true
+    command: ros2 launch interaction_manager interaction_manager.launch.xml interaction_trigger_prediction_threshold:=0.5 interaction_end_distance_threshold:=2.0 debug_node:=true

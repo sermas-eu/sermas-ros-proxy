@@ -1,0 +1,47 @@
+
+services:
+  sermas-ros-proxy:
+    image: ghcr.io/sermas-eu/sermas-ros-proxy:latest
+    restart: unless-stopped
+    command: ros2 launch ros_proxy launch.py
+    environment:
+      - SERMAS_TOOLKIT_URL=https://dev.sermas.spindoxlabs.it
+      - APP_ID=poa
+      - CLIENT_ID=avatar
+      - CLIENT_SECRET={secret}
+      - LOGLEVEL=INFO
+    network_mode: host
+    pid: host
+    ipc: host
+  driver:
+    image: gabry993/mutual-gaze:full
+    network_mode: host
+    pid: host
+    ipc: host
+    privileged: true
+    command: ros2 launch azure_kinect_ros_driver driver.launch.py depth_mode:=NFOV_UNBINNED color_resolution:=3072P fps:=15 body_tracking_enabled:=true body_tracking_cpu:=false rectify_images:=false imu_rate_target:=100
+    volumes:
+      - ./logs:/root/.ros/log:rw
+      - "/tmp/.X11-unix:/tmp/.X11-unix:rw"
+      - ./profile.xml:/profile.xml
+    environment:
+      - DISPLAY
+      - QT_X11_NO_MITSHM=1
+      - "FASTRTPS_DEFAULT_PROFILES_FILE=/profile.xml"
+    deploy:
+        resources:
+          reservations:
+            devices:
+              - driver: nvidia
+                count: 1
+                capabilities: [gpu]
+  interaction-manager:
+    image: ghcr.io/sermas-eu/intention-detection:latest
+    network_mode: host
+    pid: host
+    ipc: host
+    privileged: true
+    command: ros2 launch interaction_manager interaction_manager.launch.xml interaction_trigger_prediction_threshold:=0.5 interaction_end_distance_threshold:=2.0 debug_node:=true
+    volumes:
+      - ./logs:/root/.ros/log:rw
+      - ./profile.xml:/profile.xml
