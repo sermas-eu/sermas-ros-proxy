@@ -62,8 +62,7 @@ class IntentDetection(IntegrationBaseClass):
     self.ros_node.api_client.add_to_monitoring(d)
 
   def handle_sermas_message(self, msg):
-    logging.info("Received agent changed event (topic: %s): %s" %
-                 (SERMAS_AGENT_CHANGED_TOPIC, str(msg.payload.decode())))
+    logging.debug("Received agent changed event")
     d = json.loads(str(msg.payload.decode()))
     if d["record"]["status"] == "ready":
       self.last_session_id = d["sessionId"]
@@ -82,7 +81,7 @@ class IntentDetection(IntegrationBaseClass):
     d = {"moduleId": "detection", "source": "camera", "userId": str(msg.user_id),
          "probability": 1, "interactionType": self.mapInteractionType(msg.event_type), "sessionId": "" }
     self.ros_node.mqtt_client.publish(self.sermas_intent_detection_topic, d)
-    self.add_to_monitoring("interaction", f"Intent detection event type: {msg.event_type}, userId: {msg.user_id}")
+    self.add_to_monitoring("interaction", f"Intent detection event '{msg.event_type}' for userId '{msg.user_id}'")
 
   def check_status(self):
     if self.last_landmark_ts == 0:
@@ -95,7 +94,7 @@ class IntentDetection(IntegrationBaseClass):
       self.data_available = False
     else:
       self.data_available = True
-    logging.info("Device status: %s" % ("available" if self.data_available else "unavailable"))
+    logging.debug("Device status: %s" % ("available" if self.data_available else "unavailable"))
     d = { "status": 
           {
             "available": "true" if self.data_available else "false"
