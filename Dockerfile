@@ -99,6 +99,7 @@ RUN python3 -m pip  install torch torchvision -f https://download.pytorch.org/wh
 RUN mkdir -p /ros_ws/src
 
 COPY ros/session_event_msgs /ros_ws/src/session_event_msgs
+COPY ros/users_landmarks_msgs /ros_ws/src/users_landmarks_msgs
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt

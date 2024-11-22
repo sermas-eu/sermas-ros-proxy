@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import datetime
 
 class IntegrationBaseClass(ABC):
   def __init__(self, ros_node, sermas_topic=""):
@@ -14,3 +14,7 @@ class IntegrationBaseClass(ABC):
   @abstractmethod
   def handle_sermas_message(self, msg):
     raise NotImplementedError()
+  
+  def add_to_monitoring(self, type: str, data: str):
+    d = {"appId": self.ros_node.app_id, "sessionId": "", "type": type, "label": data, "ts": datetime.datetime.now()}
+    self.ros_node.mqtt_client.publish('platform/monitoring', d)

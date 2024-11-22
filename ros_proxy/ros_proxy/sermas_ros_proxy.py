@@ -59,10 +59,6 @@ class SermasRosProxy(Node):
         self.client_id = self.ensure_env("CLIENT_ID") 
         self.client_secret = self.ensure_env("CLIENT_SECRET") 
         self.app_id = self.ensure_env("APP_ID")
-        if os.getenv("ENV") == "development":
-            logging.info("Env DEVELOPMENT")
-            self.broker_url = 'localhost'
-            self.broker_port = 1883
 
     def handle_sermas_message(self, client, userdata, msg):
         for t in self.integrations:
