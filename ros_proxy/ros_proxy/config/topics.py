@@ -42,3 +42,5 @@ SERMAS_ROBOT_ACTUATE_TOPIC = os.environ.get(
     "SERMAS_ROBOT_ACTUATE_TOPIC", "robotics/actuate")
 SERMAS_ROBOT_OP_STATE_TOPIC = os.environ.get(
     "SERMAS_ROBOT_OP_STATE_TOPIC", "robotics/opstate")
+SERMAS_AGENT_CHANGED_TOPIC = os.environ.get(
+    "SERMAS_ROBOT_OP_STATE_TOPIC", "session/agent/changed/+")
