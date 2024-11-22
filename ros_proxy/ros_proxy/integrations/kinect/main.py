@@ -53,6 +53,9 @@ class IntentDetection(IntegrationBaseClass):
   def handle_sermas_message(self, msg):
     pass
 
+  def handle_landmarks(self, msg):
+    self.last_landmark_ts = time.time()
+
   def mapInteractionType(self, event_type):
     if event_type == 'start':
       return 'start'
@@ -71,6 +74,9 @@ class IntentDetection(IntegrationBaseClass):
       # just started
       return
     if (time.time() - self.last_landmark_ts) > MIN_VALIDITY_INTERVAL_SEC:
+      if self.data_available:
+            # if changing to false send an error
+            self.add_to_monitoring("error", f"Intent detection not available")
       self.data_available = False
     else:
       self.data_available = True
@@ -82,5 +88,3 @@ class IntentDetection(IntegrationBaseClass):
         }
     self.mqtt_client.publish(self.sermas_status_topic, d)
 
-  def handle_landmarks(self, msg):
-    self.last_landmark_ts = time.time()
