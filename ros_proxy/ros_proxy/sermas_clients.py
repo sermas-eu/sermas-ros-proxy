@@ -101,17 +101,27 @@ class SermasApiClient:
                           % ( self.toolkit_url, self.app_id, self.client_id, str(e)))
             self.retrieve_token()
 
+    def add_to_monitoring(self, data):
+        logging.debug("Add to monitoring")
+        try:
+            requests.post(self.toolkit_url + '/api/platform/monitoring', json=data, headers={'Authorization': f"Bearer {self.access_token}" })
+        except requests.exceptions.RequestException as e:
+            logging.error("Add to monitoring error: %s" % (str(e)))
+
+
 class SermasMQTTClient:
     def __init__(self, broker_address, port, app_id, client_id, api_client, callback):
         mqtt_client_id = uuid.uuid4().hex
-        if os.getenv("ENV") == "development":
-            self.client = mqtt.Client(client_id=mqtt_client_id,
-                callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
-        else: 
-            self.client = mqtt.Client(client_id=mqtt_client_id,
-                transport="websockets", callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
+
+        self.client = mqtt.Client(client_id=mqtt_client_id,
+            transport="websockets", callback_api_version=mqtt.CallbackAPIVersion.VERSION1)
+        if os.getenv("ENV") != "development":
             ssl_context = ssl.create_default_context()
             self.client.tls_set_context(ssl_context)
+        else:
+            logging.info("Env DEVELOPMENT")
+            port = 8080
+
         self.app_id = app_id
         self.client_id = client_id
         self.api_client = api_client

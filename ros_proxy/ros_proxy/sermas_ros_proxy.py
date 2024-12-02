@@ -18,18 +18,12 @@ class SermasRosProxy(Node):
     def __init__(self):
         super().__init__('sermas_ros_proxy')
         self.load_config()
-        api_client = SermasApiClient(self.api_url, self.app_id, self.client_id, self.client_secret)
+        self.api_client = SermasApiClient(self.api_url, self.app_id, self.client_id, self.client_secret)
         self.mqtt_client = SermasMQTTClient(self.broker_url, self.broker_port, self.app_id, 
-                                            self.client_id, api_client, self.handle_sermas_message)
+                                            self.client_id, self.api_client, self.handle_sermas_message)
         self.load_integrations()
         subs = [t.sermas_topic for t in self.integrations if t.sermas_topic != ""]
         self.mqtt_client.set_topics(subs)
-    #     self.test_kinect()
-
-    # def test_kinect(self):
-    #     d = {"moduleId": "detection", "source": "camera",
-    #          "probability": 0.9, "interactionType": "start", "sessionId": ""}
-    #     self.mqtt_client.publish("detection/interaction", d)
 
     def load_integrations(self):
         self.integrations = []
@@ -59,10 +53,6 @@ class SermasRosProxy(Node):
         self.client_id = self.ensure_env("CLIENT_ID") 
         self.client_secret = self.ensure_env("CLIENT_SECRET") 
         self.app_id = self.ensure_env("APP_ID")
-        if os.getenv("ENV") == "development":
-            logging.info("Env DEVELOPMENT")
-            self.broker_url = 'localhost'
-            self.broker_port = 1883
 
     def handle_sermas_message(self, client, userdata, msg):
         for t in self.integrations:
