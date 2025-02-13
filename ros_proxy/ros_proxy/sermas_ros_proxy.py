@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 from ros_proxy.integrations.kinect.main import IntentDetection
 from ros_proxy.integrations.myagv.main import MyAgvRobotCmd, MyAgvRobotStatus
 from ros_proxy.integrations.mycobot.main import MyCobotRobotActuate, MyCobotRobotArmState, MyCobotRobotGripperState
-from ros_proxy.integrations.tiago.main import Tiago
+from ros_proxy.integrations.tiago.main import TiagoRobotCmd
 from sermas_clients import SermasApiClient, SermasMQTTClient
 
 LOGLEVEL = os.environ.get('LOGLEVEL', 'INFO').upper()
@@ -28,12 +28,12 @@ class SermasRosProxy(Node):
     def load_integrations(self):
         self.integrations = []
         self.integrations.append(IntentDetection(self))
-        self.integrations.append(Tiago(self))
-        self.integrations.append(MyAgvRobotStatus(self))
-        self.integrations.append(MyAgvRobotCmd(self))
-        self.integrations.append(MyCobotRobotActuate(self))
-        self.integrations.append(MyCobotRobotArmState(self))
-        self.integrations.append(MyCobotRobotGripperState(self))
+        self.integrations.append(TiagoRobotCmd(self))
+        # self.integrations.append(MyAgvRobotStatus(self))
+        # self.integrations.append(MyAgvRobotCmd(self))
+        # self.integrations.append(MyCobotRobotActuate(self))
+        # self.integrations.append(MyCobotRobotArmState(self))
+        # self.integrations.append(MyCobotRobotGripperState(self))
 
     def ensure_env(self, env):
         if not env in os.environ:
