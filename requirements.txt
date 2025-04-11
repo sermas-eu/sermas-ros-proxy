@@ -1,3 +1,4 @@
 paho_mqtt
 requests
 roslibpy
+setuptools<70.0
