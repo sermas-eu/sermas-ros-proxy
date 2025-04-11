@@ -5,8 +5,8 @@ import os
 from urllib.parse import urlparse
 
 from ros_proxy.integrations.kinect.main import IntentDetection
-from ros_proxy.integrations.myagv.main import MyAgvRobotCmd, MyAgvRobotStatus
-from ros_proxy.integrations.mycobot.main import MyCobotRobotActuate, MyCobotRobotArmState, MyCobotRobotGripperState
+# from ros_proxy.integrations.myagv.main import MyAgvRobotCmd, MyAgvRobotStatus
+# from ros_proxy.integrations.mycobot.main import MyCobotRobotActuate, MyCobotRobotArmState, MyCobotRobotGripperState
 from ros_proxy.integrations.tiago.main import TiagoRobotCmd
 from sermas_clients import SermasApiClient, SermasMQTTClient
 
